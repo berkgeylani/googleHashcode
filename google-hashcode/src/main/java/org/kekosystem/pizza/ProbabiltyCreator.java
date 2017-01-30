@@ -1,8 +1,9 @@
 package org.kekosystem.pizza;
 
-import java.awt.Point;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -21,6 +22,10 @@ public class ProbabiltyCreator {
 		// TODO Auto-generated method stub
 		Stream<String> lines = Files.lines(Paths.get(System.getProperty("user.dir") + File.separator + "small.in"));
 		Hashtable<Character, Integer> gradientCount = new Hashtable<>();
+		
+		PrintStream out = new PrintStream( new FileOutputStream("output.txt") );
+		System.setOut(out);
+		
 		lines.forEach((line) -> {
 			if (isFirst) {
 				isFirst = false;
@@ -43,6 +48,8 @@ public class ProbabiltyCreator {
 				// veriyor.
 				for (int i = 0; i < charsPerLine.length; i++) {
 					char gradient = charsPerLine[i];
+					
+					//malzeme baz�nda yaz.(koordinat�yla beraber.)
 					pizzaTableAsList.get(index - 1).add(new CellPOJO(2 * (index - 1), 2 * i, gradient));
 					if (gradient == 'T') {
 						if (gradientCount.containsKey('T')) {
@@ -62,43 +69,45 @@ public class ProbabiltyCreator {
 			index++;
 		});
 		// prerequirities finisihed.
-		for (List<CellPOJO> row : pizzaTableAsList) {
+		/*for (List<CellPOJO> row : pizzaTableAsList) {
 			for (CellPOJO cell : row) {
 				System.out.print(cell.toString() + "\t");
 			}
 			System.out.println();
-		}
+		}*/
 		TableNode mainNode = new TableNode("000", pizzaTableAsList);
 		printSLices(mainNode);
-		System.out.println();
-		System.out.println();
+		System.out.println("$");
+		//System.out.println();
 		
 		mainNode.getSubSliceTable().forEach((k,v)->{
-			System.out.println("----------------------111-------------");
+			System.out.println("-111-");
 			v[0].printTable();
 			printSLices(v[0]);
-			System.out.println("----------------------222-------------");
+			System.out.println("\n-222-");
 			v[1].printTable();
 			printSLices(v[1]);
+			System.out.println("$");
+			/*System.out.println();
 			System.out.println();
 			System.out.println();
-			System.out.println();
-			System.out.println();
+			System.out.println();*/
 		});
 		
-		
+		FelipeMeloo calc = new FelipeMeloo("sonucoutput", R, C, L, H);
+		calc.Pitbull("output");
 	}
 
 	private static void printSLices(TableNode mainNode) {
 		mainNode.getSubSliceTable().forEach((k,v)->{
-			System.out.println("\n____________________"+k+"____________________\n");
+			System.out.println("\n+"+k+"+\n");
 			for (int i = 0; i < v.length; i++) {
-				System.out.println("**********************************************");
+				//System.out.println("**********************************************");
 				v[i].printTable();
 			}
 		});
 	}
-
+	
 	// for (int i = 1; i <= ((gradientCount.get('T') < gradientCount.get('M')) ?
 	// gradientCount.get('T')
 	// : gradientCount.get('M'))/* Az olan malzemenin sayısını getir */; i++) {
