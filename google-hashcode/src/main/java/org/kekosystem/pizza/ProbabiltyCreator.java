@@ -14,7 +14,7 @@ public class ProbabiltyCreator {
 
 	private static boolean isFirst = true;
 	// private static char[][] pizzaTable;
-	private static int R, C, L, H, index = 0;
+	public static int R, C, L, H, index = 0;
 	private static List<List<CellPOJO>> pizzaTableAsList = new ArrayList<List<CellPOJO>>();
 
 	public static void main(String[] args) throws IOException {
