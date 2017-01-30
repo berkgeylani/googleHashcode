@@ -1,5 +1,6 @@
 package org.kekosystem.pizza;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -12,6 +13,8 @@ public class TableNode {
 																				// 2D
 																				// arraylist.
 	private int R = 0, C = 0;
+	private Point bound_low_,bound_high_;
+	
 	private Hashtable<String, TableNode[]> sliceTable = new Hashtable<>();
 
 	public String getLineId() {
@@ -63,12 +66,33 @@ public class TableNode {
 	}
 
 	public void printTable() {
-		for (List<CellPOJO> row : getPizzaSlice()) {
+		List<List<CellPOJO>> slice = getPizzaSlice();
+		
+		//NOT: bound'lar 2 ile bölündü.
+		bound_low_ = new Point( slice.get(0).get(0).getX()/2, slice.get(0).get(0).getY()/2 );
+		bound_high_ = new Point( slice.get(slice.size()-1).get(slice.get(slice.size() - 1).size()-1).getX()/2, slice.get(slice.size()-1).get(slice.get(slice.size() - 1).size()-1).getY()/2 );
+		
+		Hashtable<Character, Integer> stats = getGredientStatistics();
+		int T = (stats.get('T') != null) ? stats.get('T') : 0;
+		int M = (stats.get('M') != null) ? stats.get('M') : 0;
+		System.out.println("*" + String.join(",", new String[]{ 
+				Integer.toString(T),
+				Integer.toString(M),
+				Integer.toString(bound_low_.x),
+				Integer.toString(bound_low_.y),
+				Integer.toString(bound_high_.x),
+				Integer.toString(bound_high_.y)
+		}));//*T,M,bLx,bLy,bHx,bHy
+		
+		//System.out.println("BoundL : "+bound_low_.toString());
+		//System.out.println("BoundH : "+bound_high_.toString());
+		
+		/*for (List<CellPOJO> row : getPizzaSlice()) {
 			for (CellPOJO cell : row) {
 				System.out.print(cell.toString() + "\t");
 			}
 			System.out.println();
-		}
+		}*/
 	}
 
 	public Hashtable<String, TableNode[]> findProbabilities() {
@@ -146,12 +170,11 @@ public class TableNode {
 		return gradientCount;
 	}
 	
-	
 	private boolean isValidSlice() {
 		Hashtable<Character,Integer> gredientStatistic = getGredientStatistics();
 		boolean isValid=true;
 		for (Character gradientAsChar : gredientStatistic.keySet()) {
-			isValid = isValid&&(gredientStatistic.get(gradientAsChar)>=ProbabiltyCreator.L) ? true : false ; 
+			isValid = /*isValid&&*/(gredientStatistic.get(gradientAsChar)>=ProbabiltyCreator.L) ? true : false ; 
 		}
 		return isValid;
 	}
