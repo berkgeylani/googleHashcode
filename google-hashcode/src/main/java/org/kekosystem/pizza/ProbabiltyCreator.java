@@ -68,23 +68,21 @@ public class ProbabiltyCreator {
 			}
 			System.out.println();
 		}
-		TableNode mainNode = new TableNode("000", pizzaTableAsList);
-		printSLices(mainNode);
-		System.out.println();
-		System.out.println();
-		
-		mainNode.getSubSliceTable().forEach((k,v)->{
-			System.out.println("----------------------111-------------");
-			v[0].printTable();
-			printSLices(v[0]);
-			System.out.println("----------------------222-------------");
-			v[1].printTable();
-			printSLices(v[1]);
-			System.out.println();
-			System.out.println();
-			System.out.println();
-			System.out.println();
-		});
+		TableNode mainNode = new TableNode("000", pizzaTableAsList,null);
+//		printSLices(mainNode);
+
+//		mainNode.getSubSliceTable().forEach((k,v)->{
+//			System.out.println("----------------------111-------------");
+//			v[0].printTable();
+//			printSLices(v[0]);
+//			System.out.println("----------------------222-------------");
+//			v[1].printTable();
+//			printSLices(v[1]);
+//			System.out.println();
+//			System.out.println();
+//			System.out.println();
+//			System.out.println();
+//		});
 		
 		
 	}

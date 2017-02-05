@@ -6,13 +6,11 @@ import java.util.List;
 
 public class TableNode {
 	private String lineId;
-	private List<List<CellPOJO>> pizzaSlice = new ArrayList<List<CellPOJO>>();// yourList
-																				// will
-																				// be
-																				// 2D
-																				// arraylist.
+	private List<List<CellPOJO>> pizzaSlice = new ArrayList<List<CellPOJO>>();
 	private int R = 0, C = 0;
+	private TableNode parentNode;
 	private Hashtable<String, TableNode[]> sliceTable = new Hashtable<>();
+	private int depth;
 
 	public String getLineId() {
 		return lineId;
@@ -47,35 +45,89 @@ public class TableNode {
 		this.sliceTable = sliceTable;
 	}
 
-	public TableNode(String lineId, List<List<CellPOJO>> pizzaSlice) {
+	public TableNode(String lineId, List<List<CellPOJO>> pizzaSlice, TableNode parentNode) {
+		this.parentNode = parentNode;
+		this.depth = (parentNode == null) ? 1 : parentNode.getDepth() + 1;
 		this.lineId = lineId;
 		this.pizzaSlice = pizzaSlice;
 		this.R = pizzaSlice.size();
 		if (!pizzaSlice.isEmpty()) {
-			C = pizzaSlice.get(0).size();
+			this.C = pizzaSlice.get(0).size();
 		}
+		// this.printTable();
 		findProbabilities();
 		// findProbabilities will find possible partition of pizza.
 	}
 
-	private CellPOJO getTopRightCornerCell() {
+	public int getDepth() {
+		return depth;
+	}
+
+	public TableNode getParentNode() {
+		return parentNode;
+	}
+
+	public void setParentNode(TableNode parentNode) {
+		this.parentNode = parentNode;
+	}
+
+	private CellPOJO getTopLeftCornerCell() {
 		return getPizzaSlice().get(0).get(0);
 	}
 
+	/**
+	 * T,M,(Lx,Ly),(Hx,Hy)
+	 */
 	public void printTable() {
-		for (List<CellPOJO> row : getPizzaSlice()) {
-			for (CellPOJO cell : row) {
-				System.out.print(cell.toString() + "\t");
-			}
-			System.out.println();
-		}
+		System.out.println();
+		System.out.print(this.lineId + ",");
+		System.out.print(this.getGredientStatistics().get('T'));
+		System.out.print("," + this.getGredientStatistics().get('M') + ",");
+		CellPOJO topLeftCornerCell = this.getTopLeftCornerCell();
+		System.out.print((topLeftCornerCell.getX() / 2) + "," + (topLeftCornerCell.getY() / 2) + ",");
+		System.out.print(((topLeftCornerCell.getX() / 2) + C - 1) + "," + ((topLeftCornerCell.getY() / 2) + R - 1));
+		System.out.println();
+		// for (List<CellPOJO> row : getPizzaSlice()) {
+		// //satir
+		// for (CellPOJO cell : row) {
+		// //sutun
+		// System.out.print(cell.toString() + "\t");
+		// }
+		// System.out.println();
+		// }
+	}
+	
+	/**
+	 * T,M,(Lx,Ly),(Hx,Hy)
+	 */
+	public void printTableOneTree() {
+		System.out.println();
+		System.out.print(this.lineId + ",");
+		System.out.print(this.getGredientStatistics().get('T'));
+		System.out.print("," + this.getGredientStatistics().get('M') + ",");
+		CellPOJO topLeftCornerCell = this.getTopLeftCornerCell();
+		System.out.print((topLeftCornerCell.getX() / 2) + "," + (topLeftCornerCell.getY() / 2) + ",");
+		System.out.print(((topLeftCornerCell.getX() / 2) + C - 1) + "," + ((topLeftCornerCell.getY() / 2) + R - 1));
+		System.out.println();
+		// for (List<CellPOJO> row : getPizzaSlice()) {
+		// //satir
+		// for (CellPOJO cell : row) {
+		// //sutun
+		// System.out.print(cell.toString() + "\t");
+		// }
+		// System.out.println();
+		// }
 	}
 
 	public Hashtable<String, TableNode[]> findProbabilities() {
 		TableNode[] slices;
 		for (int i = 0; i < R - 1; i++) {
+			String inheritedMilis = System.currentTimeMillis() + "";
+			if (!getLineId().equals("000")) {
+				inheritedMilis = getLineId().split("-")[0];
+			}
 			slices = new TableNode[2];
-			int dividerLineAtX = (i) * 2 + 1 + getTopRightCornerCell().getX();
+			int dividerLineAtX = (i) * 2 + 1 + getTopLeftCornerCell().getX();
 			// System.out.println("x bölücüsü :\t" + dividerLineAtX);
 			// burada bölünen çizgi var zaten arraylistin o indexten küçük ve
 			// büyük bölgelerini alsam yeter.
@@ -90,18 +142,36 @@ public class TableNode {
 			// 2 olsaydı 1 ve ikinci satırlar alınacak kalan satırlar 2. slice a
 			// dahil
 			// yani genellerse i kadar satırı alıp birinci slice a alıcaz
-			String lineIdForX = System.currentTimeMillis() + "-x" + dividerLineAtX;
-			TableNode topSlice = new TableNode(lineIdForX, new ArrayList<>(getPizzaSlice().subList(0, i + 1)));
+			String lineIdForX = inheritedMilis + "-" + (getDepth() + 1) + "-x" + dividerLineAtX;
+			TableNode topSlice = new TableNode(lineIdForX, new ArrayList<>(getPizzaSlice().subList(0, i + 1)), this);
 			TableNode bottomSlice = new TableNode(lineIdForX,
-					new ArrayList<>(getPizzaSlice().subList(i + 1, getPizzaSlice().size())));
-			if (topSlice.isValidSlice() && bottomSlice.isValidSlice()) {
-				slices[0] = topSlice;
-				slices[1] = bottomSlice;
-				sliceTable.put(lineIdForX, slices);
+					new ArrayList<>(getPizzaSlice().subList(i + 1, getPizzaSlice().size())), this);
+			Hashtable<Character, Integer> gredientStatistic = topSlice.getGredientStatistics();
+
+			if (gredientStatistic.containsKey('T') && gredientStatistic.containsKey('M')
+					&& gredientStatistic.get('M') + gredientStatistic.get('T') <= ProbabiltyCreator.H) {
+				gredientStatistic = bottomSlice.getGredientStatistics();
+				if (gredientStatistic.containsKey('T') && gredientStatistic.containsKey('M')
+						&& gredientStatistic.get('M') + gredientStatistic.get('T') <= ProbabiltyCreator.H) {
+					if (topSlice.isValidSlice() && bottomSlice.isValidSlice()) {
+						slices[0] = topSlice;
+						slices[1] = bottomSlice;
+						System.out.println("***********************" + this.depth + "**************************");
+						System.out.println("top");
+						topSlice.printTable();
+						System.out.println("bottom");
+						bottomSlice.printTable();
+						sliceTable.put(lineIdForX, slices);
+					}
+				}
 			}
 		}
 		for (int i = 0; i < C - 1; i++) {
-			int dividerLineAtY = (i) * 2 + 1 + getTopRightCornerCell().getY();
+			String inheritedMilis = System.currentTimeMillis() + "";
+			if (!getLineId().equals("000")) {
+				inheritedMilis = getLineId().split("-")[0];
+			}
+			int dividerLineAtY = (i) * 2 + 1 + getTopLeftCornerCell().getY();
 			slices = new TableNode[2];
 			// System.out.println("y bölücüsü :\t " + ((i) * 2 + 1));
 			List<List<CellPOJO>> leftSliceAsAL = new ArrayList<List<CellPOJO>>();
@@ -111,13 +181,27 @@ public class TableNode {
 				rightSliceAsAL.add(new ArrayList<CellPOJO>(
 						getPizzaSlice().get(rowIndex).subList(i + 1, getPizzaSlice().get(rowIndex).size())));
 			}
-			String lineIdForY = System.currentTimeMillis() + "-y" + dividerLineAtY;
-			TableNode leftSlice = new TableNode(lineIdForY, leftSliceAsAL);
-			TableNode rightSlice = new TableNode(lineIdForY, rightSliceAsAL);
-			if (leftSlice.isValidSlice() && rightSlice.isValidSlice()) {
-			slices[0] = leftSlice;
-			slices[1] = rightSlice;
-			sliceTable.put(lineIdForY, slices);
+			String lineIdForY = inheritedMilis + "-" + (getDepth() + 1) + "-y" + dividerLineAtY;
+			TableNode leftSlice = new TableNode(lineIdForY, leftSliceAsAL, this);
+			TableNode rightSlice = new TableNode(lineIdForY, rightSliceAsAL, this);
+			Hashtable<Character, Integer> gredientStatistic = leftSlice.getGredientStatistics();
+
+			if (gredientStatistic.containsKey('T') && gredientStatistic.containsKey('M')
+					&& gredientStatistic.get('M') + gredientStatistic.get('T') <= ProbabiltyCreator.H) {
+				gredientStatistic = rightSlice.getGredientStatistics();
+				if (gredientStatistic.containsKey('T') && gredientStatistic.containsKey('M')
+						&& gredientStatistic.get('M') + gredientStatistic.get('T') <= ProbabiltyCreator.H) {
+					if (leftSlice.isValidSlice() && rightSlice.isValidSlice()) {
+						System.out.println("***********************" + (this.depth + 1) + "**************************");
+						System.out.println("left");
+						leftSlice.printTable();
+						System.out.println("right");
+						rightSlice.printTable();
+						slices[0] = leftSlice;
+						slices[1] = rightSlice;
+						sliceTable.put(lineIdForY, slices);
+					}
+				}
 			}
 		}
 		return sliceTable;
@@ -134,7 +218,8 @@ public class TableNode {
 					} else {
 						gradientCount.put('T', 1);
 					}
-				} else if (gradient == 'M') {
+				}
+				if (gradient == 'M') {
 					if (gradientCount.containsKey('M')) {
 						gradientCount.put('M', gradientCount.get('M') + 1);
 					} else {
@@ -145,14 +230,11 @@ public class TableNode {
 		}
 		return gradientCount;
 	}
-	
-	
+
 	private boolean isValidSlice() {
-		Hashtable<Character,Integer> gredientStatistic = getGredientStatistics();
-		boolean isValid=true;
-		for (Character gradientAsChar : gredientStatistic.keySet()) {
-			isValid = isValid&&(gredientStatistic.get(gradientAsChar)>=ProbabiltyCreator.L) ? true : false ; 
-		}
-		return isValid;
+		Hashtable<Character, Integer> gredientStatistic = getGredientStatistics();
+		return gredientStatistic.containsKey('T') && gredientStatistic.containsKey('M')
+				&& gredientStatistic.get('M') >= ProbabiltyCreator.L
+				&& gredientStatistic.get('T') >= ProbabiltyCreator.L;
 	}
 }
