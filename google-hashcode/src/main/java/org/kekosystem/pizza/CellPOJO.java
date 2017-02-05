@@ -29,6 +29,6 @@ public class CellPOJO {
 	}
 	@Override
 	public String toString() {
-		return "Cell("+getX()+","+getY()+")-("+getGradient()+")";
+		return "Cell("+getX()/2+","+getY()/2+")-("+getGradient()+")";
 	}
 }
