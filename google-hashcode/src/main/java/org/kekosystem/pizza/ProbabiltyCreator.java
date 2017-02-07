@@ -8,12 +8,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProbabiltyCreator {
@@ -77,90 +79,44 @@ public class ProbabiltyCreator {
 		// }
 		// System.out.println();
 		// }
+		
+		List<String> willBeWriteList = Files.lines(Paths.get(RESULT_PATH)).filter(map -> new Integer(map.split("-")[3].split(",")[0]).intValue()+new Integer(map.split("-")[3].split(",")[1]).intValue() <= H).collect(Collectors.toList());
+		willBeWriteList.sort(new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				 String x1 = o1.split("-")[0];
+		            String x2 = o2.split("-")[0];
+		            int sComp = x1.compareTo(x2);
 
-		readFile();
+		            if (sComp != 0) {
+		               return sComp;
+		            } else {
+		               String x3 = o1.split("-")[1];
+		               String x4 = o2.split("-")[1];
+		               return x3.compareTo(x4);
+		            }
+			}
+		});
+		Files.write(Paths.get(RESULT_PATH), willBeWriteList);
+		//readFile();
 	}
 
 	private static void readFile() throws IOException {
-//		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-//		System.setOut(new PrintStream(new File(System.getProperty("user.dir") + File.separator + "testResultFiltered.txt")));
-		int dosya_ismi = 0;
+		// System.setOut(new PrintStream(new
+		// FileOutputStream(FileDescriptor.out)));
+		// System.setOut(new PrintStream(new File(System.getProperty("user.dir")
+		// + File.separator + "testResultFiltered.txt")));
 		List<String> lines = Files.readAllLines(Paths.get(RESULT_PATH));
-		for (String milisPerTree : TableNode.getMilisList()) {
-			System.out.println(milisPerTree + "---------");
-			dosya_ismi++;
-			System.setOut(new PrintStream(new File(System.getProperty("user.dir") + File.separator + "testResult"+dosya_ismi+".txt")));
-			
-			int depth_cursor = -1,
-				ctrl = 0;
-			
-			ArrayList<Integer> borders = new ArrayList<>();
-			ArrayList<String> slices_per_depths = new ArrayList<>();
-			
-			Collections.sort(lines);
-			for (String line : lines) {
-				if(!line.split("-")[0].equals(milisPerTree))	continue;
-				
-				if(depth_cursor != Integer.parseInt(line.split("-")[1])){
-					depth_cursor = Integer.parseInt(line.split("-")[1]);
-					borders.add(ctrl);
-				}
-				
-				//max_depth = Integer.parseInt(lines.get(0).split("-")[1]);
-				String[] miniTableInfo = line.split("-")[3].split(",");
-				
-				if (line.contains(milisPerTree)
-						&& Integer.parseInt(miniTableInfo[0]) + Integer.parseInt(miniTableInfo[1]) <= H) {
-					
-					ctrl++;
-					System.out.println(line);	
-					
-					//bir kişinin çocuklarını yazdırmak amaç
-					//elimde bir node var şu anda ve onunda elinde  böylbir şey yazıyor y5*1y3*1
-					//o zaman çocuklarda splitin 2 inci elemanını aratırız
-//					if(line.split("-")[1].equals("8")) {
-//						String[] sliceInfo = line.split("-")[3].split(",");
-//						sliceInfo[sliceInfo.length-1];
-//					}					
-				}
-				
-				
-			}
-			
-			//en küçük depthlilerden dolaşmaya başla.
-			int smaller_depth = borders.get(borders.size() - 1);
-			//ArrayList<String> result_slices = new ArrayList<>();
-			Set<String> blacklist = new HashSet<>();
-			String blacklist_adayi = null; 
-			
-			for(int i = borders.size() - 1; i >= 0; i--){
-				int low_bound = borders.get(i),
-					high_bound = (i == borders.size() - 1) ? slices_per_depths.size() : borders.get(i+1);
-				
-				for(; low_bound<high_bound; low_bound++){
-					
-					if(i != borders.size()){
-						String[] blacklist_parcalari = slices_per_depths.get(low_bound).split("-")[1].split(",");
-						String[] blacklist_parcalari_valid = null;
-						System.arraycopy(blacklist_parcalari, 0, blacklist_parcalari_valid, 0, blacklist_parcalari.length-2);
-						
-						if(blacklist.contains(blacklist_parcalari_valid))
-							slices_per_depths.remove(low_bound);
-						
-					}else{
-						String[] blacklist_parcalari = slices_per_depths.get(low_bound).split("-")[1].split(",");
-						String[] blacklist_parcalari_valid = null;
-						System.arraycopy(blacklist_parcalari, 0, blacklist_parcalari_valid, 0, blacklist_parcalari.length-2);
-						blacklist.add(Arrays.toString(blacklist_parcalari_valid));
-					}
-				}//endfor
-			}//endfor
 		
-			for(String slice : slices_per_depths){
-				System.out.println(slice);
+		Set<String> result = new HashSet<>();
+		lines.forEach((line)->{
+			if(!result.contains(line)){
+				String[] splitted = line.split("-");
+				String treeId = splitted[0],
+					   info   = splitted[3];
 			}
-			
-		}
+		});
+		
 	}
 
 	private static void printSLices(TableNode mainNode) {
